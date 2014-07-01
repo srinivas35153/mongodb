@@ -1,0 +1,585 @@
+[root@myhostnumer1 hpadmin]# ps -ef | grep mongo | grep -v grep
+root 1506     1  0 06:05 ?        00:00:29 /opt/mongodb/bin/mongod -f /etc/mongod.conf_config1
+root 1521     1  0 06:05 ?        00:00:25 /opt/mongodb/bin/mongod -f /etc/mongod.conf_config2
+root 1538     1  0 06:06 ?        00:00:26 /opt/mongodb/bin/mongod -f /etc/mongod.conf_config3
+root 1811     1  0 06:09 ?        00:00:20 /opt/mongodb/bin/mongos -f /etc/mongod.conf_router
+root 7103     1  0 07:16 ?        00:00:11 /opt/mongodb/bin/mongod -f /etc/mongod.conf_rs0_2
+[root@myhostnumer1 hpadmin]#
+[root@myhostnumer1 hpadmin]#
+[root@myhostnumer1 hpadmin]# cat /etc/mongod.conf_rs0_2
+# MongoDB Configuration File
+#
+ 
+ 
+# General Settings
+dbpath = /opt/mongodb/data
+journal = true
+fork    = true
+port   = 27017
+directoryperdb = true
+#smallFiles = true
+#noprealloc = true
+ 
+ 
+ 
+ 
+# Logging
+verbose = true
+logappend = true
+logpath = /opt/mongodb/logs/mongod_rs0_2.log
+ 
+ 
+# Security
+auth = true
+setParameter = supportCompatibilityFormPrivilegeDocuments=0
+setParameter = authenticationMechanisms=GSSAPI,MONGODB-CR
+setParameter = logUserIds=1
+ 
+ 
+sslOnNormalPorts = true
+sslPEMKeyFile = /etc/ssl/mongodb.pem
+sslPEMKeyPassword = Test$123
+ 
+ 
+ 
+ 
+nohttpinterface = true
+bind_ip = xx.xx.xx7.36
+noscripting = true
+ 
+ 
+ 
+ 
+# Replication
+replSet = rs0
+keyFile = /srv/mongodb/keyfile
+[root@myhostnumer1 hpadmin]#
+[root@myhostnumer1 hpadmin]# ll -lhtr /opt/mongodb/data/
+total 28K
+drwxr-xr-x 6 root root 4.0K Jun 19 06:09 config3
+drwxr-xr-x 6 root root 4.0K Jun 19 06:09 config2
+drwxr-xr-x 6 root root 4.0K Jun 19 06:09 config1
+drwxr-xr-x 3 root root 4.0K Jun 19 06:58 local
+drwxr-xr-x 3 root root 4.0K Jun 19 07:14 admin
+-rwxr-xr-x 1 root root    5 Jun 19 07:16 mongod.lock
+drwxr-xr-x 2 root root 4.0K Jun 19 07:22 journal
+[root@myhostnumer1 hpadmin]#
+[root@myhostnumer1 hpadmin]# ll -lhtr /etc/ssl/mongodb.pem
+-rw-r--r-- 1 root root 3.1K Jun 19 06:04 /etc/ssl/mongodb.pem
+[root@myhostnumer1 hpadmin]#
+[root@myhostnumer1 hpadmin]# ll -lhtr /srv/mongodb/keyfile
+-rwx------ 1 root mongod 33 Jun 17 06:45 /srv/mongodb/keyfile
+[root@myhostnumer1 hpadmin]#
+[root@myhostnumer1 hpadmin]#
+[root@myhostnumer1 hpadmin]# env | grep KRB
+KRB5_KTNAME=/opt/mongodb/keytab/mongodb.keytab
+KRB5_TRACE=/tmp/krb5trace_mongo_19-06-14-08-05s.log
+[root@myhostnumer1 hpadmin]#
+[root@myhostnumer1 hpadmin]#
+[root@myhostnumer1 hpadmin]# klist
+Ticket cache: FILE:/tmp/krb5cc_0
+Default principal: mongodb/admin@MY.DOMAIN.NET
+ 
+ 
+Valid starting Expires            Service principal
+06/19/14 06:47:47 06/20/14 06:47:47  krbtgt/MY.DOMAIN.NET@MY.DOMAIN.NET
+renew until 06/19/14 06:47:47
+06/19/14 07:18:27 06/20/14 06:47:47 mongodb/myhostnumer1.MY.DOMAIN.NET@MY.DOMAIN.NET
+renew until 06/19/14 06:47:47
+[root@myhostnumer1 hpadmin]#
+[root@myhostnumer1 hpadmin]#
+[root@myhostnumer1 hpadmin]# kadmin
+Authenticating as principal mongodb/admin@MY.DOMAIN.NET with password.
+Password for mongodb/admin@MY.DOMAIN.NET:
+kadmin: 
+kadmin: 
+kadmin: listprincs
+K/M@MY.DOMAIN.NET
+citi@MY.DOMAIN.NET
+host/myhostnumer1.MY.DOMAIN.NET@MY.DOMAIN.NET
+host/myhostnumer2.MY.DOMAIN.NET@MY.DOMAIN.NET
+kadmin/myhostnumer1.MY.DOMAIN.NET@MY.DOMAIN.NET
+kadmin/admin@MY.DOMAIN.NET
+kadmin/changepw@MY.DOMAIN.NET
+krbtgt/MY.DOMAIN.NET@MY.DOMAIN.NET
+mongod@MY.DOMAIN.NET
+mongodb/myhostnumer1.MY.DOMAIN.NET@MY.DOMAIN.NET
+mongodb/myhostnumer2.MY.DOMAIN.NET@MY.DOMAIN.NET
+mongodb/admin@MY.DOMAIN.NET
+kadmin: 
+kadmin: 
+kadmin:  exit
+ 
+ 
+[root@myhostnumer1 hpadmin]# cat /srv/mongodb/keyfile
+SrinivasMutyalakeyFileforTesting
+[root@myhostnumer1 hpadmin]#
+[root@myhostnumer1 hpadmin]# cat /etc/ssl/mongodb.pem
+-----BEGIN PRIVATE KEY-----
+MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCzD8ugKJ8AR0J/
+R7FErd4G6QTaRA1l59usmegAo5baLJBXgKMYQYvxtlhjvCt+YOXQV0YZXN/i2Ht5
+Lkatak5pNfPLyS4oYaYRZlLOb5K5XgYZsiQlke0g2EpNLxXLLcvO49/TtXU7polN
+r6vtpW0JgShsCPJqVgkrfG1ZZWAy1yVKUmTlTVbEnfDoU5HNOLQOBN3QoU0jabd9
+mhUFD5cwicufI2G8PNER0evl5I4adfVU51YdLfwocxkU1GC8DRx63+rD5irbSE+r
+fWeZ2hjXV5sdBWmQDxM4igp3bwXmtdHS/kzYqf7Vm0ZWFD9UNThce9RD6xdeT6Dn
+I/ugzBFBAgMBAAECggEAbaewpWX66Sq6eEOpNUvcehLdG+Us50kz5+FgiHOl//nm
+cw+d0U7iqqVmP72OTRh95DZuAT41BTBZfP5v3ecKGbgmkpejIquaDXHCKBV/nvEL
+f1TueeuBcenCpr289O4Yr5wxB+9J2bvEvcRk32W8/mMQJAjem2wQtYa/WE2Suc6s
+snvcOPsMUglpXLKb2U+xbeMEzRW+Skrh4llPnVIHdv0iEjWaq5UibAzqxLpmPp/N
+LeSfNV1pE8OFmXIFnq16P4S2nqZbfBdQAbJ2LX/5yrTPi7kkyDCVPrpuJ6MIZfm/
+1+ahBIKbrlnN95/Z0jBmynfmt/6fMqyqOpWD3tziGQKBgQDiGoCwnIvWaVW6p0Zr
+/fGKrH3KQ5ekan0kMKTn7hFAmBsPCO7gz9C38ueINcWkaooatvfi50C3hEDIrTt6
+TAlz2gxFmdvebehaNoENbirmaBJwNs5zlSqsT2zGiTucBBnwONJbS9Ff6bTiNzso
+zGWGjtem4vS2HPtRUc2BErZhPwKBgQDKvPL/Bg2DfOl0bqvoiXxkmlU3cv8mrLH3
+p3Z/KoBrR/6EW17j8BW3+ro5u0nmC3rZ9JwF9SD1LoHIe41SkEvBwPGCUMCWEnLg
+kSASx/+FcRp3qATFQ6nmmjm4nugohfb4IkAYG63LHoltSKrfOj7n9w9K3IiSDmP1
+UVfdypZtfwKBgQDV6GDrtY8OcGUsy2hybrN/kKUJIF1srVprTKIW0kH8LGsdFER6
+5+D8xo+Ja+XqIOk7UPK/9ixh8nsf39QvZZRjyFxn1KIQk0aJYptBS4LGrJsVEqTK
+8MqIbjPouJhuh+rKO9e3i8kvxnjcs4gCly1N2gHn3zvIty6ExrF3dW6aHQKBgH07
+2JLGB2T4rTEaCCD9hJSUbR1ycMBQHyMPE/ibpXYfo83YrzX4IUJjo9NzqMNsxfeK
+zTI06KXrk4nnIDYnIlTOPaE1BrHtNX8YxoozdtjUM/hEFqZQFMx46jzsFBasIhHG
+/nal6mY1N8kFAWAhF6isiYrBza8DKqXoGHHN6bw7AoGAMhAwBUlqxz3pDBVA5SR6
+7lDEM4/BFe35f9YPiVIxfJkG62QFu5AularVTU0x5yGJHmJzZFhz0tGD1cGUy+EA
+7BdapXMa0vg8fkZGXPybB+NQzB8Gf3gOHQn43OU5BbBpYnwvQeaHkjeudLqEQfOm
+JH3lmLBmC5lVv9Wdr6eLO/U=
+-----END PRIVATE KEY-----
+-----BEGIN CERTIFICATE-----
+MIID3zCCAsegAwIBAgIJANH3+zUcteaeMA0GCSqGSIb3DQEBBQUAMIGFMQswCQYD
+VQQGEwJJTjETMBEGA1UECAwKTWFoYXJhc3RyYTENMAsGA1UEBwwET3VuZTENMAsG
+A1UECgwEQ2l0aTENMAsGA1UECwwEQ2F0ZTEXMBUGA1UEAwwObnMubmFtcm9vdC5u
+ZXQxGzAZBgkqhkiG9w0BCQEWDHNyaUBjaXRpLmNvbTAeFw0xNDA2MTkwOTM5NTha
+Fw0xNTA2MTkwOTM5NThaMIGFMQswCQYDVQQGEwJJTjETMBEGA1UECAwKTWFoYXJh
+c3RyYTENMAsGA1UEBwwET3VuZTENMAsGA1UECgwEQ2l0aTENMAsGA1UECwwEQ2F0
+ZTEXMBUGA1UEAwwObnMubmFtcm9vdC5uZXQxGzAZBgkqhkiG9w0BCQEWDHNyaUBj
+aXRpLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALMPy6AonwBH
+Qn9HsUSt3gbpBNpEDWXn26yZ6ACjltoskFeAoxhBi/G2WGO8K35g5dBXRhlc3+LY
+e3kuRq1qTmk188vJLihhphFmUs5vkrleBhmyJCWR7SDYSk0vFcsty87j39O1dTum
+iU2vq+2lbQmBKGwI8mpWCSt8bVllYDLXJUpSZOVNVsSd8OhTkc04tA4E3dChTSNp
+t32aFQUPlzCJy58jYbw80RHR6+Xkjhp19VTnVh0t/ChzGRTUYLwNHHrf6sPmKttI
+T6t9Z5naGNdXmx0FaZAPEziKCndvBea10dL+TNip/tWbRlYUP1Q1OFx71EPrF15P
+oOcj+6DMEUECAwEAAaNQME4wHQYDVR0OBBYEFFZuCtNegfbirX9moj/O9aXRV2pC
+MB8GA1UdIwQYMBaAFFZuCtNegfbirX9moj/O9aXRV2pCMAwGA1UdEwQFMAMBAf8w
+DQYJKoZIhvcNAQEFBQADggEBADFe1C88sEEWTnI4ALQcP0gpIIOcs3F5H2H0D+w3
+GlNDyQHakuTP24tG1K80stKHClmcI0JreLDq7J50OcUBTgXuvpV+2od5QTBiLiv8
+t7ue5RPi5WcuKBz3ixoLtqTy0fwlRJVGJfxMcOUdfVt0CcBvA4SXyF5Q3KSyulae
+6of+TZGYmS8r1z7Gl/Mm8MUYI2JSF5RWnu7Ar0G6XlVpqoqZbAdjklLNPwRue/PA
+YUFVMVowk88japERcXI5eO5X+NO+7C8oclF2sky7cwJOwfsYe8nzX2Y3QC1C1umA
+deHXhUFveQXNwi2WIG24LL/WrqXeVq9lZ3+9YO/dRBmHl3o=
+-----END CERTIFICATE-----
+[root@myhostnumer1 hpadmin]#
+[root@myhostnumer1 hpadmin]#
+[root@myhostnumer1 hpadmin]# ktutil /opt/mongodb/keytab/mongodb.keytab
+ktutil:  ?
+Available ktutil requests:
+ 
+ 
+clear_list, clear Clear the current keylist.
+read_kt, rkt Read a krb5 keytab into the current keylist.
+read_st, rst Read a krb4 srvtab into the current keylist.
+write_kt, wkt Write the current keylist to a krb5 keytab.
+write_st, wst Write the current keylist to a krb4 srvtab.
+add_entry, addent Add an entry to the current keylist.
+delete_entry, delent     Delete an entry from the current keylist.
+list, l List the current keylist.
+list_requests, lr, ?     List available requests.
+quit, exit, q Exit program.
+ktutil: 
+ktutil: read_kt /opt/mongodb/keytab/mongodb.keytab
+ktutil: 
+ktutil:  l
+slot KVNO Principal
+---- ---- ---------------------------------------------------------------------
+   1 3 mongodb/myhostnumer2.MY.DOMAIN.NET@MY.DOMAIN.NET
+   2 3 mongodb/myhostnumer2.MY.DOMAIN.NET@MY.DOMAIN.NET
+   3 3 mongodb/myhostnumer2.MY.DOMAIN.NET@MY.DOMAIN.NET
+   4 3 mongodb/myhostnumer2.MY.DOMAIN.NET@MY.DOMAIN.NET
+   5 3 mongodb/myhostnumer2.MY.DOMAIN.NET@MY.DOMAIN.NET
+   6 3 mongodb/myhostnumer2.MY.DOMAIN.NET@MY.DOMAIN.NET
+   7 2 mongodb/myhostnumer1.MY.DOMAIN.NET@MY.DOMAIN.NET
+   8 2 mongodb/myhostnumer1.MY.DOMAIN.NET@MY.DOMAIN.NET
+   9 2 mongodb/myhostnumer1.MY.DOMAIN.NET@MY.DOMAIN.NET
+  10 2 mongodb/myhostnumer1.MY.DOMAIN.NET@MY.DOMAIN.NET
+  11 2 mongodb/myhostnumer1.MY.DOMAIN.NET@MY.DOMAIN.NET
+  12 2 mongodb/myhostnumer1.MY.DOMAIN.NET@MY.DOMAIN.NET
+ktutil: 
+ktutil: 
+ktutil:  quit
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Configurations of Config servers & Router ( mongos) :
+ 
+ 
+ 
+ 
+[root@myhostnumer1 hpadmin]# ps -ef | grep mongo | grep -v grep
+root 1506     1  0 06:05 ?        00:00:30 /opt/mongodb/bin/mongod -f /etc/mongod.conf_config1
+root 1521     1  0 06:05 ?        00:00:26 /opt/mongodb/bin/mongod -f /etc/mongod.conf_config2
+root 1538     1  0 06:06 ?        00:00:26 /opt/mongodb/bin/mongod -f /etc/mongod.conf_config3
+root 1811     1  0 06:09 ?        00:00:21 /opt/mongodb/bin/mongos -f /etc/mongod.conf_router
+root 7103     1  0 07:16 ?        00:00:13 /opt/mongodb/bin/mongod -f /etc/mongod.conf_rs0_2
+[root@myhostnumer1 hpadmin]#
+[root@myhostnumer1 hpadmin]# cat /etc/mongod.conf_config1
+# MongoDB Configuration File
+#
+ 
+ 
+# General Settings
+dbpath = /opt/mongodb/data/config1
+journal = true
+fork    = true
+port   = 29011
+directoryperdb = true
+#smallFiles = true
+#noprealloc = true
+ 
+ 
+ 
+ 
+# Logging
+verbose = true
+logappend = true
+logpath = /opt/mongodb/logs/config1.log
+ 
+ 
+# Security
+auth = true
+setParameter = supportCompatibilityFormPrivilegeDocuments=0
+setParameter = authenticationMechanisms=GSSAPI,MONGODB-CR
+setParameter = logUserIds=1
+ 
+ 
+sslOnNormalPorts = true
+sslPEMKeyFile = /etc/ssl/mongodb.pem
+sslPEMKeyPassword = Test$123
+ 
+ 
+nohttpinterface = true
+bind_ip = xx.xx.xx7.36
+noscripting = true
+ 
+ 
+ 
+ 
+# Replication
+keyFile = /srv/mongodb/keyfile
+[root@myhostnumer1 hpadmin]#
+[root@myhostnumer1 hpadmin]# cat /etc/mongod.conf_config2
+# MongoDB Configuration File
+#
+ 
+ 
+# General Settings
+dbpath = /opt/mongodb/data/config2
+journal = true
+fork    = true
+port   = 29012
+directoryperdb = true
+#smallFiles = true
+#noprealloc = true
+ 
+ 
+ 
+ 
+# Logging
+verbose = true
+logappend = true
+logpath = /opt/mongodb/logs/config2.log
+ 
+ 
+# Security
+ 
+ 
+auth = true
+setParameter = supportCompatibilityFormPrivilegeDocuments=0
+setParameter = authenticationMechanisms=GSSAPI,MONGODB-CR
+setParameter = logUserIds=1
+ 
+ 
+sslOnNormalPorts = true
+sslPEMKeyFile = /etc/ssl/mongodb.pem
+sslPEMKeyPassword = Test$123
+ 
+ 
+nohttpinterface = true
+bind_ip = xx.xx.xx7.36
+noscripting = true
+ 
+ 
+ 
+ 
+# Replication
+keyFile = /srv/mongodb/keyfile
+[root@myhostnumer1 hpadmin]#
+[root@myhostnumer1 hpadmin]#
+[root@myhostnumer1 hpadmin]# cat /etc/mongod.conf_config3
+# MongoDB Configuration File
+#
+ 
+ 
+# General Settings
+dbpath = /opt/mongodb/data/config3
+journal = true
+fork    = true
+port   = 29013
+directoryperdb = true
+#smallFiles = true
+#noprealloc = true
+ 
+ 
+ 
+ 
+# Logging
+verbose = true
+logappend = true
+logpath = /opt/mongodb/logs/config3.log
+ 
+ 
+# Security
+auth = true
+setParameter = supportCompatibilityFormPrivilegeDocuments=0
+setParameter = authenticationMechanisms=GSSAPI,MONGODB-CR
+setParameter = logUserIds=1
+ 
+ 
+sslOnNormalPorts = true
+sslPEMKeyFile = /etc/ssl/mongodb.pem
+sslPEMKeyPassword = Test$123
+ 
+ 
+nohttpinterface = true
+bind_ip = xx.xx.xx7.36
+noscripting = true
+ 
+ 
+ 
+ 
+# Replication
+keyFile = /srv/mongodb/keyfile
+[root@myhostnumer1 hpadmin]#
+[root@myhostnumer1 hpadmin]#
+[root@myhostnumer1 hpadmin]#
+[root@myhostnumer1 hpadmin]# cat /etc/mongod.conf_router
+# MongoDB Configuration File
+#
+ 
+ 
+# General Settings
+#dbpath = /opt/mongodb/data
+#journal = true
+fork    = true
+port   = 10000
+#directoryperdb = true
+#smallFiles = true
+#noprealloc = true
+ 
+ 
+ 
+ 
+# Logging
+verbose = true
+logappend = true
+logpath = /opt/mongodb/logs/router.log
+ 
+ 
+# Security
+#auth = true
+setParameter = supportCompatibilityFormPrivilegeDocuments=0
+setParameter = authenticationMechanisms=GSSAPI,MONGODB-CR
+setParameter = logUserIds=1
+ 
+ 
+sslOnNormalPorts = true
+sslPEMKeyFile = /etc/ssl/mongodb.pem
+sslPEMKeyPassword = Citi@35153
+ 
+ 
+nohttpinterface = true
+bind_ip = xx.xx.xx7.36
+noscripting = true
+ 
+ 
+ 
+ 
+# Replication
+#replSet = rs0
+keyFile = /srv/mongodb/keyfile
+configdb = xx.xx.xx7.36:29011,xx.xx.xx7.36:29012,xx.xx.xx7.36:29013
+[root@myhostnumer1 hpadmin]#
+ 
+ 
+ 
+ 
+[root@myhostnumer1 hpadmin]#
+[root@myhostnumer1 hpadmin]# /opt/mongodb/bin/mongo --authenticationMechanism=GSSAPI --authenticationDatabase='$external' --username mongodb/admin@MY.DOMAIN.NET myhostnumer1:27017/admin --ssl
+MongoDB shell version: 2.4.5
+connecting to: myhostnumer1:27017/admin
+Server has startup warnings:
+Thu Jun 19 07:16:50.880 [initandlisten]
+Thu Jun 19 07:16:50.880 [initandlisten] ** WARNING: You are running on a NUMA machine.
+Thu Jun 19 07:16:50.880 [initandlisten] **          We suggest launching mongod like this to avoid performance problems:
+Thu Jun 19 07:16:50.880 [initandlisten] ** numactl --interleave=all mongod [other options]
+Thu Jun 19 07:16:50.880 [initandlisten]
+rs0:PRIMARY>
+rs0:PRIMARY>
+rs0:PRIMARY> show dbs
+admin 0.203125GB
+local 2.0771484375GB
+rs0:PRIMARY>
+rs0:PRIMARY>
+rs0:PRIMARY> use admin
+switched to db admin
+rs0:PRIMARY>
+rs0:PRIMARY> db.system.users.find()
+{ "_id" : ObjectId("53a2c61e8e7885e30429e74e"), "roles" : [ "readWriteAnyDatabase", "userAdminAnyDatabase", "dbAdminAnyDatabase",   "clusterAdmin" ], "user" : "adm", "pwd" : "8f1cf56da9da9e575e0c85ed1c5a4fba" }
+{ "_id" : ObjectId("53a2c62a8e7885e30429e74f"), "roles" : [ "readWriteAnyDatabase", "userAdminAnyDatabase", "dbAdminAnyDatabase",   "clusterAdmin" ], "user" : "mongodb/admin@MY.DOMAIN.NET", "userSource" : "$external" }
+rs0:PRIMARY>
+rs0:PRIMARY> use newdb
+switched to db newdb
+rs0:PRIMARY>
+rs0:PRIMARY> db.test_col.insert({"x":"1"})
+rs0:PRIMARY>
+rs0:PRIMARY> show dbs
+admin 0.203125GB
+local 2.0771484375GB
+newdb 0.203125GB
+rs0:PRIMARY>
+rs0:PRIMARY>
+rs0:PRIMARY> rs.status()
+{
+"set" : "rs0",
+"date" : ISODate("2014-06-19T12:15:10Z"),
+"myState" : 1,
+"members" : [
+{
+  "_id" : 0,
+  "name" : "myhostnumer1:27017",
+  "health" : 1,
+  "state" : 1,
+  "stateStr" : "PRIMARY",
+  "uptime" : 3500,
+  "optime" : Timestamp(1403179993, 1),
+  "optimeDate" : ISODate("2014-06-19T12:13:13Z"),
+  "self" : true
+},
+{
+  "_id" : 1,
+  "name" : "myhostnumer2:27017",
+  "health" : 1,
+  "state" : 2,
+  "stateStr" : "SECONDARY",
+  "uptime" : 3139,
+  "optime" : Timestamp(1403179993, 1),
+  "optimeDate" : ISODate("2014-06-19T12:13:13Z"),
+  "lastHeartbeat" : ISODate("2014-06-19T12:15:10Z"),
+  "lastHeartbeatRecv" : ISODate("2014-06-19T12:15:10Z"),
+  "pingMs" : 0,
+  "syncingTo" : "myhostnumer1:27017"
+},
+{
+  "_id" : 2,
+  "name" : "myhostnumer2:30000",
+  "health" : 1,
+  "state" : 7,
+  "stateStr" : "ARBITER",
+  "uptime" : 2751,
+  "lastHeartbeat" : ISODate("2014-06-19T12:15:10Z"),
+  "lastHeartbeatRecv" : ISODate("2014-06-19T12:15:09Z"),
+  "pingMs" : 1
+}
+],
+"ok" : 1
+}
+rs0:PRIMARY>
+
+
+
+
+root@myhostnumer2 data]# ps -ef | grep mongo | grep -v grep
+root     13651 1  0 08:21 ?        00:00:02 /opt/mongodb/bin/mongod -f /etc/mongod.conf_arbiter
+root     13730 1  2 08:21 ?        00:00:14 /opt/mongodb/bin/mongod -f /etc/mongod.conf_rs0_1
+[root@myhostnumer2 data]#
+[root@myhostnumer2 data]#
+[root@myhostnumer2 data]# cat /etc/mongod.conf_rs0_1
+# MongoDB Configuration File
+#
+ 
+# General Settings
+dbpath = /opt/mongodb/data
+journal = true
+fork    = true
+port = 27017
+directoryperdb = true
+#smallFiles = true
+#noprealloc = true
+ 
+ 
+# Logging
+verbose = true
+logappend = true
+logpath = /opt/mongodb/logs/mongod_rs0_1.log
+ 
+# Security
+auth = true
+ 
+setParameter = supportCompatibilityFormPrivilegeDocuments=0
+setParameter = authenticationMechanisms=GSSAPI,MONGODB-CR
+setParameter = logUserIds=1
+ 
+sslOnNormalPorts = true
+sslPEMKeyFile = /etc/ssl/mongodb.pem
+sslPEMKeyPassword = Test$123
+ 
+nohttpinterface = true
+bind_ip = xx.xx.xx7.37
+noscripting = true
+ 
+ 
+# Replication
+replSet = rs0
+keyFile = /srv/mongodb/keyfile
+[root@myhostnumer2 data]#
+[root@myhostnumer2 data]#
+[root@myhostnumer2 data]# cat  /etc/mongod.conf_arbiter
+# MongoDB Configuration File
+#
+ 
+# General Settings
+dbpath = /opt/mongodb/data/arbiter
+#journal = true
+fork    = true
+port    = 30000
+#directoryperdb = true
+#smallFiles = true
+#noprealloc = true
+ 
+ 
+# Logging
+verbose = true
+logappend = true
+logpath = /opt/mongodb/logs/arbiter.log
+ 
+# Security
+auth = true
+setParameter = supportCompatibilityFormPrivilegeDocuments=0
+setParameter = authenticationMechanisms=GSSAPI,MONGODB-CR
+setParameter = logUserIds=1
+ 
+sslOnNormalPorts = true
+sslPEMKeyFile = /etc/ssl/mongodb.pem
+sslPEMKeyPassword = Test$123
+ 
+nohttpinterface = true
+bind_ip = xx.xx.xx7.37
+noscripting = true
+ 
+ 
+# Replication
+replSet = rs0
+keyFile = /srv/mongodb/keyfile
+[root@myhostnumer2 data]#
