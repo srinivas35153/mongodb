@@ -1,0 +1,299 @@
+[username@myhostname bin]$ cat Sharded_cluster_script.sh
+ 
+ 
+##### Killing the existing Mongo processes ################
+for i in `ps -ef | egrep 'shardsvr|configsvr|replSet|configdb' | grep -v egrep | awk -F"  " '{print $2}'`; do kill -9 $i; done
+ 
+ 
+##### Creating Mongo data & log files ################
+rm -rf /opt/mongodb/data/*
+rm -rf /opt/mongodb/logs/*
+cd /opt/mongodb/data/
+mkdir shard1_1 shard1_2 shard2_1 shard2_2 config1 config2 config3 arbiter1 arbiter2
+cd /opt/mongodb/bin
+ 
+ 
+##### Starting the Mongo Config,Shard,Arbiter & Router services ################
+ 
+ 
+## Config Servers #####
+numactl --interleave=all ./mongod --configsvr --dbpath /opt/mongodb/data/config1 --logpath /opt/mongodb/logs/config1.log --port 39000 --config /etc/mongod.conf &
+numactl --interleave=all ./mongod --configsvr --dbpath /opt/mongodb/data/config2 --logpath /opt/mongodb/logs/config2.log --port 39001 --config /etc/mongod.conf &
+numactl --interleave=all ./mongod --configsvr --dbpath /opt/mongodb/data/config3 --logpath /opt/mongodb/logs/config3.log --port 39002 --config /etc/mongod.conf &
+ 
+ 
+## Replica Set 1 ######
+numactl --interleave=all ./mongod --shardsvr --replSet rs1 --dbpath /opt/mongodb/data/shard1_1 --logpath /opt/mongodb/logs/shard1_1.log --port 27010 --config /etc/mongod.conf &
+numactl --interleave=all ./mongod --shardsvr --replSet rs1 --dbpath /opt/mongodb/data/shard1_2 --logpath /opt/mongodb/logs/shard1_2.log --port 27011 --config /etc/mongod.conf &
+ 
+ 
+## Replica Set 2 in Another server ######
+numactl --interleave=all ./mongod --shardsvr --replSet rs2 --dbpath /opt/mongodb/data/shard2_1 --logpath /opt/mongodb/logs/shard2_1.log --port 27020 --config /etc/mongod.conf &
+numactl --interleave=all ./mongod --shardsvr --replSet rs2 --dbpath /opt/mongodb/data/shard2_2 --logpath /opt/mongodb/logs/shard2_2.log --port 27021 --config /etc/mongod.conf &
+ 
+ 
+## Arbiters ####
+numactl --interleave=all ./mongod --replSet rs1 --dbpath /opt/mongodb/data/arbiter1 --logpath /opt/mongodb/logs/arbiter1.log --port 27012 --config /etc/mongod.conf &
+numactl --interleave=all ./mongod --replSet rs2 --dbpath /opt/mongodb/data/arbiter2 --logpath /opt/mongodb/logs/arbiter2.log --port 27022 --config /etc/mongod.conf &
+ 
+ 
+sleep 10
+echo -e "\n\n\n\n Config, Shard, Router & Arbiter services are initiating ... \n\n\n\n"
+numactl --interleave=all ./mongos --configdb 10.116.34.35:39000,10.116.34.35:39001,10.116.34.35:39002 --logpath /opt/mongodb/logs/router.log --port 10000 --config /etc/mongod.conf &
+ 
+ 
+sleep 10
+ 
+ 
+./mongo localhost:27010/admin --eval "rs.initiate()"
+./mongo localhost:27020/admin --eval "rs.initiate()"
+ 
+ 
+sleep 30
+ 
+ 
+echo -e "\n\n\n\n Replica sets are added. \n\n\n\n"
+./mongo localhost:27010/admin --eval "rs.add(\"myhostname:27011\")"
+./mongo localhost:27020/admin --eval "rs.add(\"myhostname:27021\")"
+#./mongo 12d4-dl585-04:27020/admin --eval "rs.add(\"12d4-dl585-04:27021\")"
+ 
+ 
+./mongo localhost:27010/admin --eval "rs.addArb(\"myhostname:27012\")"
+./mongo localhost:27020/admin --eval "rs.addArb(\"myhostname:27022\")"
+#./mongo 12d4-dl585-04:27020/admin --eval "rs.addArb(\"12d4-dl585-04:27022\")"
+ 
+ 
+sleep 10
+ 
+ 
+./mongo localhost:10000/admin --eval "sh.addShard(\"rs1/myhostname:27010,myhostname:27011,myhostname:27012\")"
+./mongo localhost:10000/admin --eval "sh.addShard(\"rs2/myhostname:27020,myhostname:27021,myhostname:27022\")"
+ 
+ 
+#./mongo localhost:10000/admin --eval "sh.addShard(\"rs1/myhostname:27010,myhostname:27011\")"
+#./mongo localhost:10000/admin --eval "sh.addShard(\"rs2/myhostname:27020,myhostname:27021\")"
+ 
+ 
+#./mongo localhost:10000/admin --eval "sh.addShard(\"rs2/12d4-dl585-04:27020,12d4-dl585-04:27021,12d4-dl585-04:27022\")"
+ 
+ 
+sleep 10
+ 
+ 
+#./mongo localhost:10000/admin --eval "db.addUser({\"user\":\"adm\",\"pwd\":\"pwd\",\"roles\":[\"userAdminAnyDatabase\",\"dbAdminAnyDatabase\",\"clusterAdmin\",\"readWriteAnyDatabase\"]})"
+ 
+ 
+[username@myhostname bin]$
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Steps to enable a Shard.
+ 
+bash-4.1$ ./mongo --port 27001
+MongoDB shell version: 2.4.5
+connecting to: 127.0.0.1:27001/test
+Welcome to the MongoDB shell.
+For interactive help, type "help".
+For more comprehensive documentation, see
+        http://docs.mongodb.org/
+Questions? Try the support group
+        http://groups.google.com/group/mongodb-user
+>
+>
+>
+> rs.initiate()
+{
+        "info2" : "no configuration explicitly specified -- making one",
+        "me" : "hostnname:27001",
+        "info" : "Config now saved locally.  Should come online in about a minute.",
+        "ok" : 1
+}
+>
+>
+>
+shard:SECONDARY>
+shard:PRIMARY>
+shard:PRIMARY>
+shard:PRIMARY> rs.add("hostnname:27002")
+{ "ok" : 1 }
+shard:PRIMARY> rs.add("hostnname:27003")
+{ "ok" : 1 }
+shard:PRIMARY>
+shard:PRIMARY> rs.addArb("hostnname:30000")
+{ "ok" : 1 }
+shard:PRIMARY>
+shard:PRIMARY> rs.status()
+{
+        "set" : "shard",
+        "date" : ISODate("2014-02-06T10:31:31Z"),
+        "myState" : 1,
+        "members" : [
+                {
+                        "_id" : 0,
+                        "name" : "hostnname:27001",
+                        "health" : 1,
+                        "state" : 1,
+                        "stateStr" : "PRIMARY",
+                        "uptime" : 162378,
+                        "optime" : Timestamp(1391682684, 1),
+                        "optimeDate" : ISODate("2014-02-06T10:31:24Z"),
+                        "self" : true
+                },
+                {
+                        "_id" : 1,
+                        "name" : "hostnname:27002",
+                        "health" : 1,
+                        "state" : 2,
+                        "stateStr" : "SECONDARY",
+                        "uptime" : 64,
+                        "optime" : Timestamp(1391682684, 1),
+                        "optimeDate" : ISODate("2014-02-06T10:31:24Z"),
+                        "lastHeartbeat" : ISODate("2014-02-06T10:31:29Z"),
+                        "lastHeartbeatRecv" : ISODate("2014-02-06T10:31:29Z"),
+                        "pingMs" : 0,
+                        "syncingTo" : "hostnname:27001"
+                },
+                {
+                        "_id" : 2,
+                        "name" : "hostnname:27003",
+                        "health" : 1,
+                        "state" : 2,
+                        "stateStr" : "SECONDARY",
+                        "uptime" : 60,
+                        "optime" : Timestamp(1391682684, 1),
+                        "optimeDate" : ISODate("2014-02-06T10:31:24Z"),
+                        "lastHeartbeat" : ISODate("2014-02-06T10:31:29Z"),
+                        "lastHeartbeatRecv" : ISODate("2014-02-06T10:31:29Z"),
+                        "pingMs" : 0,
+                        "syncingTo" : "hostnname:27001"
+                },
+                {
+                        "_id" : 3,
+                        "name" : "hostnname:30000",
+                        "health" : 1,
+                        "state" : 7,
+                        "stateStr" : "ARBITER",
+                        "uptime" : 7,
+                        "lastHeartbeat" : ISODate("2014-02-06T10:31:30Z"),
+                        "lastHeartbeatRecv" : ISODate("2014-02-06T10:31:29Z"),
+                        "pingMs" : 0
+                }
+        ],
+        "ok" : 1
+}
+shard:PRIMARY>
+bye
+bash-4.1$
+bash-4.1$ ./mongo --port 10000
+MongoDB shell version: 2.4.5
+connecting to: 127.0.0.1:10000/test
+Welcome to the MongoDB shell.
+For interactive help, type "help".
+For more comprehensive documentation, see
+        http://docs.mongodb.org/
+Questions? Try the support group
+        http://groups.google.com/group/mongodb-user
+mongos>
+mongos> sh.addShard("shard/hostnname:27001,hostnname:27002,hostnname:27003,hostnname:30000")
+{ "shardAdded" : "shard", "ok" : 1 }
+mongos>
+bash-4.1$
+bash-4.1$ ./mongo --port 27001
+MongoDB shell version: 2.4.5
+connecting to: 127.0.0.1:27001/test
+Welcome to the MongoDB shell.
+For interactive help, type "help".
+For more comprehensive documentation, see
+        http://docs.mongodb.org/
+Questions? Try the support group
+        http://groups.google.com/group/mongodb-user
+shard:PRIMARY> rs.status()
+{
+        "set" : "shard",
+        "date" : ISODate("2014-02-06T10:34:07Z"),
+        "myState" : 1,
+        "members" : [
+                {
+                        "_id" : 0,
+                        "name" : "hostnname:27001",
+                        "health" : 1,
+                        "state" : 1,
+                        "stateStr" : "PRIMARY",
+                        "uptime" : 162534,
+                        "optime" : Timestamp(1391682684, 1),
+                        "optimeDate" : ISODate("2014-02-06T10:31:24Z"),
+                        "self" : true
+                },
+                {
+                        "_id" : 1,
+                        "name" : "hostnname:27002",
+                        "health" : 1,
+                        "state" : 2,
+                        "stateStr" : "SECONDARY",
+                        "uptime" : 220,
+                        "optime" : Timestamp(1391682684, 1),
+                        "optimeDate" : ISODate("2014-02-06T10:31:24Z"),
+                        "lastHeartbeat" : ISODate("2014-02-06T10:34:07Z"),
+                        "lastHeartbeatRecv" : ISODate("2014-02-06T10:34:05Z"),
+                        "pingMs" : 0,
+                        "syncingTo" : "hostnname:27001"
+                },
+                {
+                        "_id" : 2,
+                        "name" : "hostnname:27003",
+                        "health" : 1,
+                        "state" : 2,
+                        "stateStr" : "SECONDARY",
+                        "uptime" : 216,
+                        "optime" : Timestamp(1391682684, 1),
+                        "optimeDate" : ISODate("2014-02-06T10:31:24Z"),
+                        "lastHeartbeat" : ISODate("2014-02-06T10:34:07Z"),
+                        "lastHeartbeatRecv" : ISODate("2014-02-06T10:34:05Z"),
+                        "pingMs" : 0,
+                        "syncingTo" : "hostnname:27001"
+                },
+                {
+                        "_id" : 3,
+                        "name" : "hostnname:30000",
+                        "health" : 1,
+                        "state" : 7,
+                        "stateStr" : "ARBITER",
+                        "uptime" : 163,
+                        "lastHeartbeat" : ISODate("2014-02-06T10:34:06Z"),
+                        "lastHeartbeatRecv" : ISODate("2014-02-06T10:34:05Z"),
+                        "pingMs" : 0
+                }
+        ],
+        "ok" : 1
+}
+shard:PRIMARY> rs.conf()
+{
+        "_id" : "shard",
+        "version" : 4,
+        "members" : [
+                {
+                        "_id" : 0,
+                        "host" : "hostnname:27001"
+                },
+                {
+                        "_id" : 1,
+                        "host" : "hostnname:27002"
+                },
+                {
+                        "_id" : 2,
+                        "host" : "hostnname:27003"
+                },
+                {
+                        "_id" : 3,
+                        "host" : "hostnname:30000",
+                        "arbiterOnly" : true
+                }
+        ]
+}
+shard:PRIMARY>
+shard:PRIMARY>
