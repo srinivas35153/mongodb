@@ -1,0 +1,30 @@
+mongodb
+=======
+
+MongoDB at Finger Tips
+
+MongoDB : Bulk inserts to Collection with a for loop
+
+
+Here you go !
+ 
+rs1:PRIMARY> use test
+switched to db test
+rs1:PRIMARY>
+rs1:PRIMARY>  for(var i = 1; i <= 100 ; i++){db.test_collection.insert({"_id" : i , "title" : "How do I create manual workload i.e., Bulk inserts to Collection ", " Iteration no:" : i }); sleep(1);}
+rs1:PRIMARY>
+rs1:PRIMARY> db.test_collection.count()
+100
+rs1:PRIMARY>
+rs1:PRIMARY> db.test_collection.find().limit(9)
+{ "_id" : 1, "title" : "How do I create manual workload i.e., Bulk inserts to Collection ", " Iteration no:" : 1 }
+{ "_id" : 2, "title" : "How do I create manual workload i.e., Bulk inserts to Collection ", " Iteration no:" : 2 }
+{ "_id" : 3, "title" : "How do I create manual workload i.e., Bulk inserts to Collection ", " Iteration no:" : 3 }
+{ "_id" : 4, "title" : "How do I create manual workload i.e., Bulk inserts to Collection ", " Iteration no:" : 4 }
+{ "_id" : 5, "title" : "How do I create manual workload i.e., Bulk inserts to Collection ", " Iteration no:" : 5 }
+{ "_id" : 6, "title" : "How do I create manual workload i.e., Bulk inserts to Collection ", " Iteration no:" : 6 }
+{ "_id" : 7, "title" : "How do I create manual workload i.e., Bulk inserts to Collection ", " Iteration no:" : 7 }
+{ "_id" : 8, "title" : "How do I create manual workload i.e., Bulk inserts to Collection ", " Iteration no:" : 8 }
+{ "_id" : 9, "title" : "How do I create manual workload i.e., Bulk inserts to Collection ", " Iteration no:" : 9 }
+rs1:PRIMARY>
+rs1:PRIMARY>
