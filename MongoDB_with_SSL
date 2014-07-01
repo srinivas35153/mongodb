@@ -1,0 +1,110 @@
+It is recommended that MongoDB uses SSL to ensure any sensitive information is transmitted securely between clients and MongoDB. By default the MongoDB configuration file contains 3 entries for SSL communication. To enable MongoDB to start up using SSL requires the usage of a CA issued certificate or the creation of a self-signed one as exemplified below:
+
+[root@myhostname hpadmin]# grep ssl /etc/mongod.conf_rs0_1
+sslOnNormalPorts = true
+sslPEMKeyFile = /etc/ssl/mongodb.pem
+sslPEMKeyPassword = Testi$123
+[root@myhostname hpadmin]#
+
+To enable MongoDB to start up using SSL requires the usage of a CA issued certificate or the creation of a self-signed one as exemplified below:
+
+Generating a Self-Signed Certificate :-
+ 
+At this point you will need to generate a self-signed certificate because you either don't plan on having your certificate signed by a CA, or you wish to test your new SSL implementation while the CA is signing your certificate. This temporary certificate will generate an error in the client browser to the effect that the signing certificate authority is unknown and not trusted.
+To generate a temporary certificate which is good for 365 days, issue the following command:
+
+It is recommended that MongoDB uses SSL to ensure any sensitive information is transmitted securely between clients and MongoDB. By default the MongoDB configuration file contains 3 entries for SSL communication. To enable MongoDB to start up using SSL requires the usage of a CA issued certificate or the creation of a self-signed one as exemplified below:
+
+[root@myhostname ssl]# openssl req -new -x509 -days 365 -nodes -out mongodb-cert.crt -keyout mongodb-cert.key
+Generating a 2048 bit RSA private key
+.................................................................................................................................................................+++
+..........................................................................................................+++
+writing new private key to 'mongodb-cert.key'
+-----
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [XX]:IN
+State or Province Name (full name) []:Maharastra
+Locality Name (eg, city) [Default City]:Pune
+Organization Name (eg, company) [Default Company Ltd]:Test
+Organizational Unit Name (eg, section) []:CATE
+Common Name (eg, your name or your server's hostname) []:My.DOMAIN.COM
+Email Address []:srinivas.mutyala@Test.com
+[root@myhostname ssl]#
+[root@myhostname ssl]#
+[root@myhostname ssl]#
+[root@myhostname ssl]# ll -lhtr
+total 20K
+lrwxrwxrwx 1 root root   16 Apr  2 13:45 certs -> ../pki/tls/certs
+-rw-r--r-- 1 root root 1.7K Jun 19 04:58 mongodb-cert.key
+-rw-r--r-- 1 root root 1.5K Jun 19 04:58 mongodb-cert.crt
+[root@myhostname ssl]#
+ 
+This operation generates a new, self-signed certificate with no passphrase that is valid for 365 days. Once you have the certificate, concatenate the certificate and private key to a .pem file, as in the following example
+ 
+[root@myhostname ssl]# cat mongodb-cert.key mongodb-cert.pem > mongodb.pem
+[root@myhostname ssl]#
+
+[root@myhostname ssl]#
+[root@myhostname ssl]# ll -lhtr
+total 20K
+lrwxrwxrwx 1 root root   16 Apr  2 13:45 certs -> ../pki/tls/certs
+-rw-r--r-- 1 root root 1.7K Jun 19 04:58 mongodb-cert.key
+-rw-r--r-- 1 root root 1.5K Jun 19 04:58 mongodb-cert.crt
+-rw-r--r-- 1 root root 3.1K Jun 19 04:58 mongodb.pem
+[root@myhostname ssl]#
+ 
+Note that clients must support SSL to be able to connect to a MongoDB instance where SSL has been enabled.
+ 
+[root@myhostname hpadmin]# cat /etc/mongod.conf_rs0_1
+# MongoDB Configuration File
+#
+# General Settings
+dbpath = /opt/mongodb/data
+journal = true
+fork    = true
+port = 27017
+directoryperdb = true
+#smallFiles = true
+#noprealloc = true
+ 
+# Logging
+verbose = true
+logappend = true
+logpath = /opt/mongodb/logs/mongod_rs0_1.log
+ 
+# Security
+auth = true
+ 
+setParameter = supportCompatibilityFormPrivilegeDocuments=0
+setParameter = authenticationMechanisms=GSSAPI,MONGODB-CR
+setParameter = logUserIds=1
+
+sslOnNormalPorts = true
+sslPEMKeyFile = /etc/ssl/mongodb.pem
+sslPEMKeyPassword = Test$123
+ 
+nohttpinterface = true
+bind_ip = xx.xx.xx.37
+noscripting = true
+ 
+# Replication
+replSet = rs0
+keyFile = /srv/mongodb/keyfile
+[root@myhostname hpadmin]#
+ 
+To check the connectivity. ( assuming you've already done with the Kerberos set-up with MongoDB Replica set with Kerberos Authentication )
+ 
+[root@myhostname hpadmin]# /opt/mongodb/bin/mongo --authenticationMechanism=GSSAPI --authenticationDatabase='$external' --username mongodb/admin@MY.DOMAIN.NET myhostname2:27017/admin  --ssl
+MongoDB shell version: 2.4.5
+connecting to: myhostname2:27017/admin
+ 
+rs0:PRIMARY>
+rs0:PRIMARY>
+rs0:PRIMARY>
+rs0:PRIMARY>
