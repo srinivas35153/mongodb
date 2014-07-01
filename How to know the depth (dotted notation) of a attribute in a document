@@ -1,0 +1,212 @@
+Hi,
+
+
+Say my document is very huge & have multiple sub-documents & attributes (i.e, dotted notation with long depth) in it.
+And assume I don't the schema design of my document, but I want to query on the db to count the documents with pincode is 533250
+ 
+How can I know the depth of the this attribute.
+
+To be elaborate my question, query for the above statement might be as below. but how to come to know the complete path of pincode.
+Is there any javascript/command to know get this from a document.
+
+db.place.find({"country.state.city.town.village.pincode" : 533250}).count()
+
+thnx,
+Srinivas
+
+-----
+ 
+ 
+// The script goes through all of the documents in a collection and finds how many levels deep the "pincode" is 
+// and prints the parents. It uses JSON.stringify to implement this.
+// NOTE: Dont run this on a production database!!!
+
+db.cs10773.drop();
+
+// Insert some documents with pincode at different depths
+
+db.cs10773.insert(
+  { "_id" : "80501f34-a6a0-4f8b-b5", 
+  "printLetterTemplate" : { 
+  "building" : { "colEnd" : 2, "colStart" : 1, "label" : "", "langCode" : "", "row" : 1, "valid" : true }, 
+  "buildingLocal" : { 
+  "colEnd" : 4, 
+  "colStart" : 3, 
+  "label" : "", 
+  "langCode" : "11", 
+  "row" : 1, 
+  "valid" : true 
+  },
+  "district" : { "colEnd" : 1, "colStart" : 1, "label" : "", "langCode" : "", "row" : 6, "valid" : true }, 
+  "districtLocal" : { "colEnd" : 3, "colStart" : 3, "label" : "", "langCode" : "11", "row" : 6, "valid" : true }, 
+  "landmark" : { "colEnd" : 2, "colStart" : 1, "label" : "", "langCode" : "", "row" : 3, "valid" : true }, 
+  "landmarkLocal" : { "colEnd" : 4, "colStart" : 3, "label" : "", "langCode" : "11", "row" : 3, "valid" : true },
+  "locality" : { "colEnd" : 2, "colStart" : 1, "label" : "", "langCode" : "", "row" : 4, "valid" : true }, 
+  "localityLocal" : { "colEnd" : 4, "colStart" : 3, "label" : "", "langCode" : "11", "row" : 4, "valid" : true }, 
+  "pincode" : { "colEnd" : 2, "colStart" : 2, "label" : "", "langCode" : "", "row" : 7, "valid" : true },
+  "pincodeLocal" : { "colEnd" : 4, "colStart" : 4, "label" : "", "langCode" : "11", "row" : 7, "valid" : true }, 
+  "po" : { "colEnd" : 2, "colStart" : 2, "label" : "", "langCode" : "", "row" : 5, "valid" : true },
+  "poLocal" : { "colEnd" : 4, "colStart" : 4, "label" : "", "langCode" : "11", "row" : 5, "valid" : true },
+  "state" : { "colEnd" : 1, "colStart" : 1, "label" : "", "langCode" : "", "row" : 7, "valid" : true },
+  "stateLocal" : { "colEnd" : 3, "colStart" : 3, "label" : "", "langCode" : "11", "row" : 7, "valid" : true }, 
+  "street" : { "colEnd" : 2, "colStart" : 1, "label" : "", "langCode" : "", "row" : 2, "valid" : true },
+  "streetLocal" : { "colEnd" : 4, "colStart" : 3, "label" : "", "langCode" : "11", "row" : 2, "valid" : true },
+  "subDistrict" : { "colEnd" : 2, "colStart" : 2, "label" : "", "langCode" : "", "row" : 6, "valid" : true }, 
+  "subDistrictLocal" : { "colEnd" : 4, "colStart" : 4, "label" : "", "langCode" : "11", "row" : 6, "valid" : true },
+  "valid" : true, 
+  "vtc" : { "colEnd" : 1, "colStart" : 1, "label" : "", "langCode" : "", "row" : 5, "valid" : true }, 
+  "vtcLocal" : { "colEnd" : 3, "colStart" : 3, "label" : "", "langCode" : "11", "row" : 5, "valid" : true }
+  }
+  }
+);
+
+db.cs10773.insert(
+  { "_id" : "80501f34-a6a0-4f8b-b6", 
+  "additionalInfo" : { 
+  "tknFullAddress" : [ ],
+  "deeperAddress" : {
+  "objectBefore": {
+  "valid": true
+  },
+  "pincode" : { "colEnd" : 2, "colStart" : 2, "label" : "", "langCode" : "", "row" : 7, "valid" : true },
+  "pincodeLocal" : { "colEnd" : 4, "colStart" : 4, "label" : "", "langCode" : "11", "row" : 7, "valid" : true }
+  },
+  "tknFullName" : [ ], 
+  "uid" : NumberLong("999999999999"), 
+  "updatedRefIds" : [ ], 
+  "wasConfirmedFraud" : false, 
+  "wasSuspectFraud" : false 
+  }
+  }
+);
+
+db.cs10773.insert(
+  { "_id" : "80501f34-a6a0-4f8b-b7", 
+  "JSONValue" : "", 
+  "additionalInfo" : { 
+  "tknFullAddress" : [ ],
+  "deeperAddress" : {
+  evenDeeperAddress: {
+  "otherBeforeIt":true,
+  "pincode" : { "colEnd" : 2, "colStart" : 2, "label" : "", "langCode" : "", "row" : 7, "valid" : true },
+  "pincodeLocal" : { "colEnd" : 4, "colStart" : 4, "label" : "", "langCode" : "11", "row" : 7, "valid" : true }
+  }
+  },
+  "tknFullName" : [ ], 
+  "uid" : NumberLong("999999999999"), 
+  "updatedRefIds" : [ ], 
+  "wasConfirmedFraud" : false, 
+  "wasSuspectFraud" : false 
+  }
+  }
+);
+
+db.cs10773.insert(
+  { "_id" : "80501f34-a6a0-4f8b-b8", 
+  "JSONValue" : "", 
+  "additionalInfo" : { 
+  "digitalSignatureInfo" : null, 
+  "introducerInfo" : null, 
+  "isIntroducerEODReview" : false, 
+  }
+  }
+);
+
+db.cs10773.insert(
+  { "_id" : "80501f34-a6a0-4f8b-b9", 
+  "pincode" : { "colEnd" : 2, "colStart" : 2, "label" : "", "langCode" : "", "row" : 7, "valid" : true },
+  "JSONValue" : "", 
+  "additionalInfo" : { 
+  "digitalSignatureInfo" : null, 
+  "introducerInfo" : null, 
+  }
+  }
+);
+
+
+
+
+
+Create this fucntion first.
+
+
+-----------------------------------------------------------------
+
+var spaceChar = ' ';
+
+// Get n parent names from a position in a JSON string
+
+function getParentNames(jsstr, n, pos) {
+  if (n <= 1) {
+  return "";
+  } else {
+  var spacesBeforeParent = jsstr.substr(pos, n) + '"';
+  var indexParent = jsstr.lastIndexOf(spacesBeforeParent, pos);
+  if (indexParent > 0) {
+  var posParent = indexParent + spacesBeforeParent.length;
+  var endParent = jsstr.indexOf('"', posParent);
+  var parentName = "";
+  if (n > 2) {
+  parentName = getParentNames(jsstr, n - 1, indexParent) + ".";
+  }
+  return parentName + jsstr.substr(posParent, endParent - posParent);
+  } else {
+  return "";
+  }
+  }
+}
+--------------------------------------------------------------------------------------
+
+Run the below script.
+
+// Go through each document in the collection
+db.cs10773.find().forEach(function(doc) {
+  // Get a JSON representation of the document with a single space for each level
+  var jsstr = JSON.stringify(doc, null, spaceChar);
+  var pos = jsstr.search(/"pincode"/);
+  var count = 0;
+  if (pos > 1) {
+  while (jsstr[--pos] == spaceChar) {
+  count++;
+  }
+  }
+  print(doc._id + " " + count + " " + getParentNames(jsstr, count, pos));
+});
+--------------------
+
+
+
+
+
+
+Out put will be as below.
+------------------------
+
+
+mongos> // Go through each document in the collection
+mongos> db.cs10773.find().forEach(function(doc) {
+... // Get a JSON representation of the document with a single space for each level
+... var jsstr = JSON.stringify(doc, null, spaceChar);
+... var pos = jsstr.search(/"pincode"/);
+... var count = 0;
+... if (pos > 1) {
+... while (jsstr[--pos] == spaceChar) {
+... count++;
+... }
+... }
+... print(doc._id + " " + count + " " + getParentNames(jsstr, count, pos));
+... });
+80501f34-a6a0-4f8b-b6 3 additionalInfo.deeperAddress
+80501f34-a6a0-4f8b-b7 4 additionalInfo.deeperAddress.evenDeeperAddress
+80501f34-a6a0-4f8b-b8 0 
+80501f34-a6a0-4f8b-b9 1 
+80501f34-a6a0-4f8b-b5 2 printLetterTemplate
+mongos> 
+mongos> 
+mongos> db.cs10773.find()
+{ "_id" : "80501f34-a6a0-4f8b-b6", "additionalInfo" : { "tknFullAddress" : [ ], "deeperAddress" : { "objectBefore" : { "valid" : true }, "pincode" : { "colEnd" : 2, "colStart" : 2, "label" : "", "langCode" : "", "row" : 7, "valid" : true }, "pincodeLocal" : { "colEnd" : 4, "colStart" : 4, "label" : "", "langCode" : "11", "row" : 7, "valid" : true } }, "tknFullName" : [ ], "uid" : NumberLong("999999999999"), "updatedRefIds" : [ ], "wasConfirmedFraud" : false, "wasSuspectFraud" : false } }
+{ "_id" : "80501f34-a6a0-4f8b-b7", "JSONValue" : "", "additionalInfo" : { "tknFullAddress" : [ ], "deeperAddress" : { "evenDeeperAddress" : { "otherBeforeIt" : true, "pincode" : { "colEnd" : 2, "colStart" : 2, "label" : "", "langCode" : "", "row" : 7, "valid" : true }, "pincodeLocal" : { "colEnd" : 4, "colStart" : 4, "label" : "", "langCode" : "11", "row" : 7, "valid" : true } } }, "tknFullName" : [ ], "uid" : NumberLong("999999999999"), "updatedRefIds" : [ ], "wasConfirmedFraud" : false, "wasSuspectFraud" : false } }
+{ "_id" : "80501f34-a6a0-4f8b-b8", "JSONValue" : "", "additionalInfo" : { "digitalSignatureInfo" : null, "introducerInfo" : null, "isIntroducerEODReview" : false } }
+{ "_id" : "80501f34-a6a0-4f8b-b9", "pincode" : { "colEnd" : 2, "colStart" : 2, "label" : "", "langCode" : "", "row" : 7, "valid" : true }, "JSONValue" : "", "additionalInfo" : { "digitalSignatureInfo" : null, "introducerInfo" : null } }
+{ "_id" : "80501f34-a6a0-4f8b-b5", "printLetterTemplate" : { "building" : { "colEnd" : 2, "colStart" : 1, "label" : "", "langCode" : "", "row" : 1, "valid" : true }, "buildingLocal" : { "colEnd" : 4, "colStart" : 3, "label" : "", "langCode" : "11", "row" : 1, "valid" : true }, "district" : { "colEnd" : 1, "colStart" : 1, "label" : "", "langCode" : "", "row" : 6, "valid" : true }, "districtLocal" : { "colEnd" : 3, "colStart" : 3, "label" : "", "langCode" : "11", "row" : 6, "valid" : true }, "landmark" : { "colEnd" : 2, "colStart" : 1, "label" : "", "langCode" : "", "row" : 3, "valid" : true }, "landmarkLocal" : { "colEnd" : 4, "colStart" : 3, "label" : "", "langCode" : "11", "row" : 3, "valid" : true }, "locality" : { "colEnd" : 2, "colStart" : 1, "label" : "", "langCode" : "", "row" : 4, "valid" : true }, "localityLocal" : { "colEnd" : 4, "colStart" : 3, "label" : "", "langCode" : "11", "row" : 4, "valid" : true }, "pincode" : { "colEnd" : 2, "colStart" : 2, "label" : "", "langCode" : "", "row" : 7, "valid" : true }, "pincodeLocal" : { "colEnd" : 4, "colStart" : 4, "label" : "", "langCode" : "11", "row" : 7, "valid" : true }, "po" : { "colEnd" : 2, "colStart" : 2, "label" : "", "langCode" : "", "row" : 5, "valid" : true }, "poLocal" : { "colEnd" : 4, "colStart" : 4, "label" : "", "langCode" : "11", "row" : 5, "valid" : true }, "state" : { "colEnd" : 1, "colStart" : 1, "label" : "", "langCode" : "", "row" : 7, "valid" : true }, "stateLocal" : { "colEnd" : 3, "colStart" : 3, "label" : "", "langCode" : "11", "row" : 7, "valid" : true }, "street" : { "colEnd" : 2, "colStart" : 1, "label" : "", "langCode" : "", "row" : 2, "valid" : true }, "streetLocal" : { "colEnd" : 4, "colStart" : 3, "label" : "", "langCode" : "11", "row" : 2, "valid" : true }, "subDistrict" : { "colEnd" : 2, "colStart" : 2, "label" : "", "langCode" : "", "row" : 6, "valid" : true }, "subDistrictLocal" : { "colEnd" : 4, "colStart" : 4, "label" : "", "langCode" : "11", "row" : 6, "valid" : true }, "valid" : true, "vtc" : { "colEnd" : 1, "colStart" : 1, "label" : "", "langCode" : "", "row" : 5, "valid" : true }, "vtcLocal" : { "colEnd" : 3, "colStart" : 3, "label" : "", "langCode" : "11", "row" : 5, "valid" : true } } }
+mongos> 
