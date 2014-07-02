@@ -1,6 +1,8 @@
 mongodb
 =======
 
-MongoDB at Finger Tips
+MongoDB at Finger Tips is the place wherein you can share your queries, ideas & thoughts related to Linux & MongoDB/Any NoSQL technologies.
 
-Place where you can query. share your thoughts related to MongoDB
+
+Thanks,
+Srinivas
